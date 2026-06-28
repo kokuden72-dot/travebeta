@@ -1,18 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useContext, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
-import { getThreadById, getThreadComments, addThreadComment, likeThreadComment } from '../../../lib/store';
+import { UserContext } from '../../../components/UserProvider';
+import { getThreadById, getThreadComments, addThreadComment, likeThreadComment, updateThread, deleteThread } from '../../../lib/store';
 import type { ThreadComment, ThreadItem } from '../../../lib/types';
 
 export default function ThreadDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useContext(UserContext);
   const threadId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [thread, setThread] = useState<ThreadItem | undefined>(undefined);
   const [comments, setComments] = useState<ThreadComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [message, setMessage] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
 
   useEffect(() => {
     if (!threadId) return;
@@ -24,6 +29,12 @@ export default function ThreadDetailPage() {
     };
     load();
   }, [threadId]);
+
+  useEffect(() => {
+    if (thread) {
+      setEditTitle(thread.title);
+    }
+  }, [thread]);
 
   if (!thread) {
     return (
@@ -45,8 +56,8 @@ export default function ThreadDetailPage() {
     }
     const newComment = await addThreadComment({
       threadId: thread.id,
-      userId: 'anonymous',
-      userName: 'ゲスト',
+      userId: user?.id ?? 'anonymous',
+      userName: user?.name ?? 'ゲスト',
       comTxt: commentText.trim(),
     });
     setComments((prev) => [newComment, ...prev]);
@@ -59,6 +70,33 @@ export default function ThreadDetailPage() {
     setComments((prev) => prev.map((comment) => comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment));
   };
 
+  const canEdit = user?.id === thread.userId;
+
+  const startEdit = () => {
+    setIsEditing(true);
+    setEditTitle(thread.title);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setMessage('編集をキャンセルしました。');
+  };
+
+  const saveEdit = async () => {
+    const updated = await updateThread(thread.id, { title: editTitle });
+    if (updated) {
+      setThread(updated);
+      setIsEditing(false);
+      setMessage('スレッドタイトルを更新しました。');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('本当にこのスレッドを削除しますか？')) return;
+    await deleteThread(thread.id);
+    router.push('/threads');
+  };
+
   return (
     <main className="page-container">
       <Header />
@@ -68,6 +106,32 @@ export default function ThreadDetailPage() {
           <span className="status-pill">作成者: {thread.userName}</span>
         </div>
         <p className="small-text">{new Date(thread.createdAt).toLocaleString()}</p>
+        {canEdit && !isEditing && (
+          <div className="action-row" style={{ gap: 10, marginTop: 12 }}>
+            <button type="button" className="secondary" onClick={startEdit}>
+              編集
+            </button>
+            <button type="button" className="danger" onClick={handleDelete}>
+              削除
+            </button>
+          </div>
+        )}
+        {isEditing && (
+          <div className="field-group" style={{ marginTop: 16 }}>
+            <label>
+              タイトル
+              <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} />
+            </label>
+            <div className="action-row">
+              <button type="button" className="secondary" onClick={cancelEdit}>
+                キャンセル
+              </button>
+              <button type="button" onClick={saveEdit}>
+                保存
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="card">

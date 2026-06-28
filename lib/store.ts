@@ -175,6 +175,48 @@ export async function addIdea(payload: {
   return idea;
 }
 
+export async function updateIdea(id: string, payload: {
+  posName: string;
+  mainTxt: string;
+  tags: string[];
+}): Promise<Idea | undefined> {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('ideas')
+      .update({
+        pos_name: payload.posName,
+        main_txt: payload.mainTxt,
+        tags: payload.tags,
+      })
+      .eq('id', id)
+      .select('id,user_id,user_name,pos_name,main_txt,tags,latitude,longitude,likes,created_at')
+      .maybeSingle();
+    if (!error && data) {
+      return mapIdeaRow(data);
+    }
+  }
+
+  const ideas = loadIdeasLocal().map((idea) =>
+    idea.id === id
+      ? { ...idea, posName: payload.posName, mainTxt: payload.mainTxt, tags: payload.tags }
+      : idea,
+  );
+  saveIdeasLocal(ideas);
+  return ideas.find((idea) => idea.id === id);
+}
+
+export async function deleteIdea(id: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('ideas').delete().eq('id', id);
+    if (!error) {
+      return;
+    }
+  }
+
+  const ideas = loadIdeasLocal().filter((idea) => idea.id !== id);
+  saveIdeasLocal(ideas);
+}
+
 export async function likeIdea(id: string): Promise<void> {
   if (supabase) {
     const existing = await getIdeaById(id);
@@ -309,6 +351,38 @@ export async function addThread(payload: {
   threads.unshift(thread);
   saveThreadsLocal(threads);
   return thread;
+}
+
+export async function updateThread(id: string, payload: { title: string }): Promise<ThreadItem | undefined> {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('threads')
+      .update({ title: payload.title })
+      .eq('id', id)
+      .select('id,user_id,user_name,title,created_at')
+      .maybeSingle();
+    if (!error && data) {
+      return mapThreadRow(data);
+    }
+  }
+
+  const threads = loadThreadsLocal().map((thread) =>
+    thread.id === id ? { ...thread, title: payload.title } : thread,
+  );
+  saveThreadsLocal(threads);
+  return threads.find((thread) => thread.id === id);
+}
+
+export async function deleteThread(id: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('threads').delete().eq('id', id);
+    if (!error) {
+      return;
+    }
+  }
+
+  const threads = loadThreadsLocal().filter((thread) => thread.id !== id);
+  saveThreadsLocal(threads);
 }
 
 export async function loadThreadComments(): Promise<ThreadComment[]> {

@@ -1,18 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useContext, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
-import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea } from '../../../lib/store';
+import { UserContext } from '../../../components/UserProvider';
+import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea } from '../../../lib/store';
 import type { Idea, IdeaComment } from '../../../lib/types';
 
 export default function IdeaDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useContext(UserContext);
   const ideaId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [idea, setIdea] = useState<Idea | undefined>(undefined);
   const [comments, setComments] = useState<IdeaComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [message, setMessage] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editPosName, setEditPosName] = useState('');
+  const [editMainTxt, setEditMainTxt] = useState('');
+  const [editTagsText, setEditTagsText] = useState('');
 
   useEffect(() => {
     if (!ideaId) return;
@@ -24,6 +31,13 @@ export default function IdeaDetailPage() {
     };
     load();
   }, [ideaId]);
+
+  useEffect(() => {
+    if (!idea) return;
+    setEditPosName(idea.posName);
+    setEditMainTxt(idea.mainTxt);
+    setEditTagsText(idea.tags.join(', '));
+  }, [idea]);
 
   if (!idea) {
     return (
@@ -45,8 +59,8 @@ export default function IdeaDetailPage() {
     }
     const newComment = await addIdeaComment({
       ideaId: idea.id,
-      userId: 'anonymous',
-      userName: 'ゲスト',
+      userId: user?.id ?? 'anonymous',
+      userName: user?.name ?? 'ゲスト',
       comTxt: commentText.trim(),
     });
     setComments((prev) => [newComment, ...prev]);
@@ -61,6 +75,44 @@ export default function IdeaDetailPage() {
     setMessage('いいねしました。');
   };
 
+  const canEdit = user?.id === idea.userId;
+
+  const startEdit = () => {
+    setIsEditing(true);
+    setEditPosName(idea.posName);
+    setEditMainTxt(idea.mainTxt);
+    setEditTagsText(idea.tags.join(', '));
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setMessage('編集をキャンセルしました。');
+  };
+
+  const saveEdit = async () => {
+    const tags = editTagsText
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    const updated = await updateIdea(idea.id, {
+      posName: editPosName,
+      mainTxt: editMainTxt,
+      tags,
+    });
+    if (updated) {
+      setIdea(updated);
+      setMessage('アイデアを更新しました。');
+      setIsEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('本当にこのアイデアを削除しますか？')) return;
+    await deleteIdea(idea.id);
+    router.push('/overview');
+  };
+
   return (
     <main className="page-container">
       <Header />
@@ -70,17 +122,54 @@ export default function IdeaDetailPage() {
           <span className="status-pill">いいね {idea.likes}</span>
         </div>
         <p className="small-text">投稿者: {idea.userName}</p>
-        <p>{idea.mainTxt}</p>
-        <div className="tag-list">
-          {idea.tags.map((tag) => (
-            <span key={tag} className="tag">#{tag}</span>
-          ))}
-        </div>
-        <div className="action-row" style={{ marginTop: 18 }}>
-          <button type="button" onClick={handleLike}>
-            Good
-          </button>
-        </div>
+        {canEdit && !isEditing && (
+          <div className="action-row" style={{ gap: 10, marginBottom: 16 }}>
+            <button type="button" className="secondary" onClick={startEdit}>
+              編集
+            </button>
+            <button type="button" className="danger" onClick={handleDelete}>
+              削除
+            </button>
+          </div>
+        )}
+        {isEditing ? (
+          <div className="field-group">
+            <label>
+              アイデア名
+              <input value={editPosName} onChange={(event) => setEditPosName(event.target.value)} />
+            </label>
+            <label>
+              内容
+              <textarea value={editMainTxt} onChange={(event) => setEditMainTxt(event.target.value)} />
+            </label>
+            <label>
+              タグ (3個まで、カンマ区切り)
+              <input value={editTagsText} onChange={(event) => setEditTagsText(event.target.value)} />
+            </label>
+            <div className="action-row">
+              <button type="button" className="secondary" onClick={cancelEdit}>
+                キャンセル
+              </button>
+              <button type="button" onClick={saveEdit}>
+                保存
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p>{idea.mainTxt}</p>
+            <div className="tag-list">
+              {idea.tags.map((tag) => (
+                <span key={tag} className="tag">#{tag}</span>
+              ))}
+            </div>
+            <div className="action-row" style={{ marginTop: 18 }}>
+              <button type="button" onClick={handleLike}>
+                Good
+              </button>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="card">
