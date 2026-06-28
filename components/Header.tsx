@@ -28,6 +28,9 @@ export default function Header() {
         <Link className="nav-link" href="/setting">
           設定
         </Link>
+        <Link className="nav-link" href="/howto">
+          使い方
+        </Link>
       </nav>
       <div className="action-row">
         <div className="status-pill">
