@@ -91,12 +91,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (supabase) {
-      const redirectTo =
-        typeof window !== 'undefined'
-        ? `${window.location.origin}/overview`
-        : process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/overview`
-        : undefined;
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : undefined);
+      const redirectTo = appUrl ? `${appUrl}/overview` : undefined;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
