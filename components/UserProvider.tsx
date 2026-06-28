@@ -104,7 +104,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { redirectTo },
+        options: { emailRedirectTo: redirectTo },
       });
       if (error) {
         console.error('Email sign-in failed:', error.message);
