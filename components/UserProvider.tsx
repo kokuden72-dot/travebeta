@@ -11,13 +11,13 @@ const USER_KEY = 'travebeta-user';
 
 interface UserContextValue {
   user: UserProfile | null;
-  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 export const UserContext = createContext<UserContextValue>({
   user: null,
-  signInWithGoogle: async () => undefined,
+  signInWithEmail: async () => undefined,
   signOut: async () => undefined,
 });
 
@@ -89,7 +89,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithEmail = async (email: string) => {
+    if (!email) {
+      return;
+    }
+
     if (supabase) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL
         ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
@@ -97,20 +101,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         ? window.location.origin
         : undefined;
       const redirectTo = appUrl ? `${appUrl}/overview` : undefined;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
         options: { redirectTo },
       });
       if (error) {
-        console.error('Google OAuth sign-in failed:', error.message);
+        console.error('Email sign-in failed:', error.message);
       }
       return;
     }
 
-    const name = typeof window !== 'undefined' ? window.prompt('Googleアカウント名を入力してください', '旅人')?.trim() || '旅人' : '旅人';
+    const name = typeof window !== 'undefined' ? window.prompt('ユーザー名を入力してください', '旅人')?.trim() || '旅人' : '旅人';
     const profile: UserProfile = {
       id: createId('user'),
-      email: `${name.replace(/\s+/g, '').toLowerCase()}@example.com`,
+      email,
       name,
       avatarUrl: null,
     };
@@ -132,7 +137,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       user,
-      signInWithGoogle,
+      signInWithEmail,
       signOut,
     }),
     [user],

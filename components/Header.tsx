@@ -1,13 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { SettingsContext } from './SettingsProvider';
 import { UserContext } from './UserProvider';
 
 export default function Header() {
   const { settings } = useContext(SettingsContext);
-  const { user, signInWithGoogle, signOut } = useContext(UserContext);
+  const { user, signInWithEmail, signOut } = useContext(UserContext);
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleEmailSignIn = async () => {
+    if (!email.trim()) {
+      setMessage('メールアドレスを入力してください。');
+      return;
+    }
+    await signInWithEmail(email.trim());
+    setMessage('確認メールを送信しました。メールを確認してください。');
+  };
 
   return (
     <header className="app-header page-container">
@@ -38,9 +49,19 @@ export default function Header() {
             ログアウト
           </button>
         ) : (
-          <button type="button" onClick={signInWithGoogle}>
-            Googleでログイン
-          </button>
+          <div className="login-input-group">
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="メールアドレス"
+              className="login-input"
+            />
+            <button type="button" onClick={handleEmailSignIn}>
+              メールでログイン
+            </button>
+            {message && <div className="small-text" style={{ marginTop: 8 }}>{message}</div>}
+          </div>
         )}
       </div>
     </header>
