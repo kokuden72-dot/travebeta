@@ -31,13 +31,6 @@ export default function SettingPage() {
               <option value="dark">ダークテーマ</option>
             </select>
           </label>
-          <label>
-            表示モード
-            <select value={settings.displayMode} onChange={(event) => setDisplayMode(event.target.value as 'desktop' | 'mobile')}>
-              <option value="desktop">PC版</option>
-              <option value="mobile">スマホ版</option>
-            </select>
-          </label>
         </div>
         <p className="footer-note">設定はローカルに保存され、全ページに適用されます。</p>
       </section>

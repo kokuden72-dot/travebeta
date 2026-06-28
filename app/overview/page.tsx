@@ -41,15 +41,15 @@ export default function OverviewPage() {
       return;
     }
 
-    const posName = window.prompt('場所の名前を入力してください', '新しい場所');
+    const posName = window.prompt('場所の名前を入力してください', '');
     if (!posName) {
       return;
     }
-    const mainTxt = window.prompt('内容を入力してください', 'この場所は素敵です');
+    const mainTxt = window.prompt('内容を入力してください', '');
     if (!mainTxt) {
       return;
     }
-    const tagsText = window.prompt('タグを3つまでカンマ区切りで入力してください', '観光,食事');
+    const tagsText = window.prompt('タグを3つまでカンマ区切りで入力してください', '');
     const tags = tagsText ? tagsText.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3) : [];
     const newIdea = await addIdea({
       userId: user.id,
@@ -70,10 +70,6 @@ export default function OverviewPage() {
       <Header />
       <div className="overview-grid">
         <section className="card">
-          <div className="section-row">
-            <h2 className="section-title">地図とアイデア</h2>
-            <span className="status-pill">{settings.displayMode === 'desktop' ? 'PC版表示' : 'スマホ版表示'}</span>
-          </div>
           <p className="small-text">{message}</p>
           <div className="map-card">
             <MapSection ideas={ideas} onMapClick={handleMapClick} />
