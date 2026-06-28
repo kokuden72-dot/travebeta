@@ -198,6 +198,7 @@ export async function addIdea(payload: {
       storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
       return idea;
     }
+    console.error('Supabase insert ideas failed:', error);
   }
   const ideas = loadIdeasLocal();
   ideas.unshift(idea);
@@ -245,6 +246,7 @@ export async function deleteIdea(id: string): Promise<void> {
       storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
       return;
     }
+    console.error('Supabase delete ideas failed:', error);
   }
 
   const ideas = loadIdeasLocal().filter((idea) => idea.id !== id);
@@ -327,6 +329,7 @@ export async function addIdeaComment(payload: {
       storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
       return comment;
     }
+    console.error('Supabase insert idea_comments failed:', error);
   }
   const comments = loadIdeaCommentsLocal();
   comments.unshift(comment);
@@ -386,6 +389,7 @@ export async function addThread(payload: {
       storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
       return thread;
     }
+    console.error('Supabase insert threads failed:', error);
   }
   const threads = loadThreadsLocal();
   threads.unshift(thread);
@@ -482,6 +486,7 @@ export async function addThreadComment(payload: {
       storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
       return comment;
     }
+    console.error('Supabase insert thread_comments failed:', error);
   }
   const comments = loadThreadCommentsLocal();
   comments.unshift(comment);
