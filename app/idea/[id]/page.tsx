@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
-import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea } from '../../../lib/store';
+import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea, storeEventTarget } from '../../../lib/store';
 import type { Idea, IdeaComment } from '../../../lib/types';
 
 export default function IdeaDetailPage() {
@@ -30,6 +30,23 @@ export default function IdeaDetailPage() {
       setComments(ideaComments);
     };
     load();
+  }, [ideaId]);
+
+  useEffect(() => {
+    const onIdeas = async () => {
+      const ideaData = await getIdeaById(ideaId as string);
+      setIdea(ideaData);
+    };
+    const onComments = async () => {
+      const ideaComments = await getIdeaComments(ideaId as string);
+      setComments(ideaComments);
+    };
+    storeEventTarget.addEventListener('ideasUpdated', onIdeas as EventListener);
+    storeEventTarget.addEventListener('ideaCommentsUpdated', onComments as EventListener);
+    return () => {
+      storeEventTarget.removeEventListener('ideasUpdated', onIdeas as EventListener);
+      storeEventTarget.removeEventListener('ideaCommentsUpdated', onComments as EventListener);
+    };
   }, [ideaId]);
 
   useEffect(() => {

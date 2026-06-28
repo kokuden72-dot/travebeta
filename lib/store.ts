@@ -2,6 +2,34 @@ import type { Idea, IdeaComment, ThreadComment, ThreadItem, UserProfile } from '
 import { createId, loadFromStorage, saveToStorage } from './storage';
 import { isSupabaseEnabled, supabase } from './supabaseClient';
 
+// Simple event emitter so pages can react to realtime updates
+export const storeEventTarget = new EventTarget();
+let _realtimeInitialized = false;
+
+export function initRealtimeSubscriptions() {
+  if (!supabase || _realtimeInitialized) return;
+  _realtimeInitialized = true;
+
+  const client = supabase;
+  const subscribe = (table: string, eventName: string) => {
+    client
+      .channel(`realtime:${table}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table },
+        () => {
+          storeEventTarget.dispatchEvent(new Event(eventName));
+        },
+      )
+      .subscribe();
+  };
+
+  subscribe('ideas', 'ideasUpdated');
+  subscribe('idea_comments', 'ideaCommentsUpdated');
+  subscribe('threads', 'threadsUpdated');
+  subscribe('thread_comments', 'threadCommentsUpdated');
+}
+
 const IDEAS_KEY = 'travebeta-ideas';
 const IDEA_COMMENTS_KEY = 'travebeta-idea-comments';
 const THREADS_KEY = 'travebeta-threads';
@@ -166,12 +194,15 @@ export async function addIdea(payload: {
       created_at: idea.createdAt,
     });
     if (!error) {
+      // notify listeners
+      storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
       return idea;
     }
   }
   const ideas = loadIdeasLocal();
   ideas.unshift(idea);
   saveIdeasLocal(ideas);
+  storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
   return idea;
 }
 
@@ -192,6 +223,7 @@ export async function updateIdea(id: string, payload: {
       .select('id,user_id,user_name,pos_name,main_txt,tags,latitude,longitude,likes,created_at')
       .maybeSingle();
     if (!error && data) {
+      storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
       return mapIdeaRow(data);
     }
   }
@@ -202,6 +234,7 @@ export async function updateIdea(id: string, payload: {
       : idea,
   );
   saveIdeasLocal(ideas);
+  storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
   return ideas.find((idea) => idea.id === id);
 }
 
@@ -209,13 +242,17 @@ export async function deleteIdea(id: string): Promise<void> {
   if (supabase) {
     const { error } = await supabase.from('ideas').delete().eq('id', id);
     if (!error) {
+      storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
       return;
     }
   }
 
   const ideas = loadIdeasLocal().filter((idea) => idea.id !== id);
   saveIdeasLocal(ideas);
+  storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
 }
+
+
 
 export async function likeIdea(id: string): Promise<void> {
   if (supabase) {
@@ -287,12 +324,14 @@ export async function addIdeaComment(payload: {
       created_at: comment.createdAt,
     });
     if (!error) {
+      storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
       return comment;
     }
   }
   const comments = loadIdeaCommentsLocal();
   comments.unshift(comment);
   saveIdeaCommentsLocal(comments);
+  storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
   return comment;
 }
 
@@ -344,12 +383,14 @@ export async function addThread(payload: {
       created_at: thread.createdAt,
     });
     if (!error) {
+      storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
       return thread;
     }
   }
   const threads = loadThreadsLocal();
   threads.unshift(thread);
   saveThreadsLocal(threads);
+  storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
   return thread;
 }
 
@@ -438,12 +479,14 @@ export async function addThreadComment(payload: {
       created_at: comment.createdAt,
     });
     if (!error) {
+      storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
       return comment;
     }
   }
   const comments = loadThreadCommentsLocal();
   comments.unshift(comment);
   saveThreadCommentsLocal(comments);
+  storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
   return comment;
 }
 
@@ -456,6 +499,7 @@ export async function likeThreadComment(commentId: string): Promise<void> {
         .update({ likes: existing.likes + 1 })
         .eq('id', commentId);
       if (!error) {
+        storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
         return;
       }
     }
@@ -464,4 +508,5 @@ export async function likeThreadComment(commentId: string): Promise<void> {
     comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment,
   );
   saveThreadCommentsLocal(comments);
+  storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
 }

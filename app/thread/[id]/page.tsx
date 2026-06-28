@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
-import { getThreadById, getThreadComments, addThreadComment, likeThreadComment, updateThread, deleteThread } from '../../../lib/store';
+import { getThreadById, getThreadComments, addThreadComment, likeThreadComment, updateThread, deleteThread, storeEventTarget } from '../../../lib/store';
 import type { ThreadComment, ThreadItem } from '../../../lib/types';
 
 export default function ThreadDetailPage() {
@@ -28,6 +28,23 @@ export default function ThreadDetailPage() {
       setComments(threadComments);
     };
     load();
+  }, [threadId]);
+
+  useEffect(() => {
+    const onThread = async () => {
+      const threadData = await getThreadById(threadId as string);
+      setThread(threadData);
+    };
+    const onComments = async () => {
+      const threadComments = await getThreadComments(threadId as string);
+      setComments(threadComments);
+    };
+    storeEventTarget.addEventListener('threadsUpdated', onThread as EventListener);
+    storeEventTarget.addEventListener('threadCommentsUpdated', onComments as EventListener);
+    return () => {
+      storeEventTarget.removeEventListener('threadsUpdated', onThread as EventListener);
+      storeEventTarget.removeEventListener('threadCommentsUpdated', onComments as EventListener);
+    };
   }, [threadId]);
 
   useEffect(() => {

@@ -3,6 +3,7 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import { createId, loadFromStorage, saveToStorage } from '../lib/storage';
 import { isSupabaseEnabled, supabase } from '../lib/supabaseClient';
+import { initRealtimeSubscriptions } from '../lib/store';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { UserProfile } from '../lib/types';
 
@@ -72,8 +73,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           }
         });
-
         subscription = listener.subscription;
+        // initialize realtime subscriptions once auth client is ready
+        initRealtimeSubscriptions();
       } else {
         const stored = loadFromStorage<UserProfile | null>(USER_KEY, null);
         if (stored) {

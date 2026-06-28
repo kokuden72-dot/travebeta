@@ -5,7 +5,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import Header from '../../components/Header';
 import { SettingsContext } from '../../components/SettingsProvider';
 import { UserContext } from '../../components/UserProvider';
-import { addIdea, loadIdeas } from '../../lib/store';
+import { addIdea, loadIdeas, storeEventTarget } from '../../lib/store';
 import type { Idea } from '../../lib/types';
 
 const MapSection = dynamic(() => import('../../components/MapSection'), { ssr: false });
@@ -22,6 +22,15 @@ export default function OverviewPage() {
       setIdeas(loadedIdeas);
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    const onUpdate = async () => {
+      const loadedIdeas = await loadIdeas();
+      setIdeas(loadedIdeas);
+    };
+    storeEventTarget.addEventListener('ideasUpdated', onUpdate as EventListener);
+    return () => storeEventTarget.removeEventListener('ideasUpdated', onUpdate as EventListener);
   }, []);
 
   const sortedIdeas = useMemo(() => [...ideas].sort((a, b) => b.likes - a.likes), [ideas]);

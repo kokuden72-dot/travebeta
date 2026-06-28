@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
-import { loadThreads } from '../../lib/store';
+import { loadThreads, storeEventTarget } from '../../lib/store';
 import type { ThreadItem } from '../../lib/types';
 
 export default function ThreadsPage() {
@@ -15,6 +15,15 @@ export default function ThreadsPage() {
       setThreads(loadedThreads);
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    const onUpdate = async () => {
+      const loadedThreads = await loadThreads();
+      setThreads(loadedThreads);
+    };
+    storeEventTarget.addEventListener('threadsUpdated', onUpdate as EventListener);
+    return () => storeEventTarget.removeEventListener('threadsUpdated', onUpdate as EventListener);
   }, []);
 
   const sortedThreads = useMemo(
