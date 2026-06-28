@@ -11,13 +11,13 @@ const USER_KEY = 'travebeta-user';
 
 interface UserContextValue {
   user: UserProfile | null;
-  signInWithEmail: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 export const UserContext = createContext<UserContextValue>({
   user: null,
-  signInWithEmail: async () => undefined,
+  signInWithGoogle: async () => undefined,
   signOut: async () => undefined,
 });
 
@@ -89,11 +89,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signInWithEmail = async (email: string) => {
-    if (!email) {
-      return;
-    }
-
+  const signInWithGoogle = async () => {
     if (supabase) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL
         ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
@@ -101,21 +97,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         ? window.location.origin
         : undefined;
       const redirectTo = appUrl ? `${appUrl}/overview` : undefined;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
       });
       if (error) {
-        console.error('Email sign-in failed:', error.message);
+        console.error('Google OAuth sign-in failed:', error.message);
       }
       return;
     }
 
-    const name = typeof window !== 'undefined' ? window.prompt('ユーザー名を入力してください', '旅人')?.trim() || '旅人' : '旅人';
+    const name = typeof window !== 'undefined' ? window.prompt('Googleアカウント名を入力してください', '旅人')?.trim() || '旅人' : '旅人';
     const profile: UserProfile = {
       id: createId('user'),
-      email,
+      email: `${name.replace(/\s+/g, '').toLowerCase()}@example.com`,
       name,
       avatarUrl: null,
     };
@@ -137,7 +132,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       user,
-      signInWithEmail,
+      signInWithGoogle,
       signOut,
     }),
     [user],
