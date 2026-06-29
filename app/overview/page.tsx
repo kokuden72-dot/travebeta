@@ -15,6 +15,11 @@ export default function OverviewPage() {
   const { user } = useContext(UserContext);
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [message, setMessage] = useState('地図上をクリックするとアイデア投稿ができます。');
+  const [pendingLocation, setPendingLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [pendingPosName, setPendingPosName] = useState('');
+  const [pendingMainTxt, setPendingMainTxt] = useState('');
+  const [pendingTagsText, setPendingTagsText] = useState('');
+  const [pendingColor, setPendingColor] = useState('#3388ff');
 
   useEffect(() => {
     const load = async () => {
@@ -35,41 +40,51 @@ export default function OverviewPage() {
 
   const sortedIdeas = useMemo(() => [...ideas].sort((a, b) => b.likes - a.likes), [ideas]);
 
-  const normalizeColor = (value: string | null): string => {
-    const color = (value || '#3388ff').trim();
-    return /^#([0-9A-F]{3}){1,2}$/i.test(color) ? color : '#3388ff';
-  };
-
   const handleMapClick = async (latitude: number, longitude: number) => {
     if (!user) {
       setMessage('ログインしてから投稿してください。');
       return;
     }
 
-    const posName = window.prompt('場所の名前を入力してください', '');
-    if (!posName) {
+    setPendingLocation({ latitude, longitude });
+    setPendingPosName('');
+    setPendingMainTxt('');
+    setPendingTagsText('');
+    setPendingColor('#3388ff');
+    setMessage('投稿内容を入力して保存してください。');
+  };
+
+  const cancelPending = () => {
+    setPendingLocation(null);
+    setMessage('地図上をクリックするとアイデア投稿ができます。');
+  };
+
+  const submitPendingIdea = async () => {
+    if (!pendingLocation) return;
+    if (!pendingPosName.trim() || !pendingMainTxt.trim()) {
+      setMessage('場所名と内容は必須です。');
       return;
     }
-    const mainTxt = window.prompt('内容を入力してください', '');
-    if (!mainTxt) {
-      return;
-    }
-    const tagsText = window.prompt('タグを3つまでカンマ区切りで入力してください', '');
-    const tags = tagsText ? tagsText.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3) : [];
-    const color = normalizeColor(window.prompt('このピンの色を入力してください（例: #ff0000）', '#3388ff'));
+
+    const tags = pendingTagsText
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 3);
 
     const newIdea = await addIdea({
-      userId: user.id,
-      userName: user.name,
-      posName,
-      mainTxt,
+      userId: user!.id,
+      userName: user!.name,
+      posName: pendingPosName.trim(),
+      mainTxt: pendingMainTxt.trim(),
       tags,
-      color,
-      latitude,
-      longitude,
+      color: pendingColor,
+      latitude: pendingLocation.latitude,
+      longitude: pendingLocation.longitude,
     });
 
     setIdeas((prev) => [newIdea, ...prev]);
+    setPendingLocation(null);
     setMessage('アイデアを保存しました。');
   };
 
@@ -79,6 +94,38 @@ export default function OverviewPage() {
       <div className="overview-grid">
         <section className="card">
           <p className="small-text">{message}</p>
+          {pendingLocation && (
+            <div className="field-group" style={{ marginBottom: 18 }}>
+              <h3 className="section-title">新しいアイデアを投稿</h3>
+              <p className="small-text">
+                クリック位置: {pendingLocation.latitude.toFixed(5)}, {pendingLocation.longitude.toFixed(5)}
+              </p>
+              <label>
+                場所名
+                <input value={pendingPosName} onChange={(event) => setPendingPosName(event.target.value)} />
+              </label>
+              <label>
+                内容
+                <textarea value={pendingMainTxt} onChange={(event) => setPendingMainTxt(event.target.value)} />
+              </label>
+              <label>
+                タグ (3個まで、カンマ区切り)
+                <input value={pendingTagsText} onChange={(event) => setPendingTagsText(event.target.value)} />
+              </label>
+              <label>
+                ピンの色
+                <input type="color" value={pendingColor} onChange={(event) => setPendingColor(event.target.value)} />
+              </label>
+              <div className="action-row">
+                <button type="button" className="secondary" onClick={cancelPending}>
+                  キャンセル
+                </button>
+                <button type="button" onClick={submitPendingIdea}>
+                  保存する
+                </button>
+              </div>
+            </div>
+          )}
           <div className="map-card">
             <MapSection ideas={ideas} onMapClick={handleMapClick} />
           </div>

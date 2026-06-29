@@ -152,6 +152,10 @@ export default function IdeaDetailPage() {
             </button>
           </div>
         )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <span style={{ width: 16, height: 16, borderRadius: '50%', background: idea.color, border: '1px solid rgba(0,0,0,0.12)' }} />
+          <span className="small-text">ピンの色: {idea.color}</span>
+        </div>
         {isEditing ? (
           <div className="field-group">
             <label>
