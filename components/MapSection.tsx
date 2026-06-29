@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Idea } from '../lib/types';
@@ -30,28 +30,61 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 }
 
 export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
+  const [mapStyle, setMapStyle] = useState<'standard' | 'satellite'>('standard');
+
   useEffect(() => {
     L.Marker.prototype.options.icon = markerIcon;
   }, []);
 
+  const tileLayer =
+    mapStyle === 'satellite'
+      ? {
+          url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+          attribution: '&copy; Google',
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        }
+      : {
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          attribution: '&copy; OpenStreetMap contributors',
+          subdomains: ['a', 'b', 'c'],
+        };
+
   return (
-    <MapContainer
-      center={[35.68, 139.76]}
-      zoom={13}
-      scrollWheelZoom={false}
-      className="leaflet-container"
-      style={{ width: '100%', minHeight: '420px' }}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-      <ClickHandler onMapClick={onMapClick} />
-      {ideas.map((idea) => (
-        <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
-          <Popup>
-            <strong>{idea.posName}</strong>
-            <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+    <div>
+      <div className="map-controls">
+        <button
+          type="button"
+          className={mapStyle === 'standard' ? 'active' : ''}
+          onClick={() => setMapStyle('standard')}
+        >
+          通常地図
+        </button>
+        <button
+          type="button"
+          className={mapStyle === 'satellite' ? 'active' : ''}
+          onClick={() => setMapStyle('satellite')}
+        >
+          航空地図
+        </button>
+      </div>
+      <MapContainer
+        center={[35.68, 139.76]}
+        zoom={13}
+        scrollWheelZoom={false}
+        className="leaflet-container"
+        style={{ width: '100%', minHeight: '420px' }}
+      >
+        <TileLayer {...tileLayer} />
+        <ClickHandler onMapClick={onMapClick} />
+        {ideas.map((idea) => (
+          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
+            <Popup>
+              <strong>{idea.posName}</strong>
+              <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 }
