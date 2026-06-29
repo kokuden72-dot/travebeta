@@ -1,21 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Idea } from '../lib/types';
 
-const DEFAULT_PIN_COLOR = '#3388ff';
-
-function createMarkerIcon(color: string) {
-  return new L.DivIcon({
-    className: 'custom-leaflet-marker',
-    html: `<div class="custom-marker" style="background:${color};border:2px solid #fff;border-radius:50%;width:20px;height:20px;box-shadow:0 0 0 4px rgba(0,0,0,0.12)"></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-    popupAnchor: [0, -20],
-  });
-}
+const markerIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 interface MapSectionProps {
   ideas: Idea[];
@@ -34,31 +32,22 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
   const [mapStyle, setMapStyle] = useState<'standard' | 'satellite'>('standard');
 
+  useEffect(() => {
+    L.Marker.prototype.options.icon = markerIcon;
+  }, []);
+
   const tileLayer =
     mapStyle === 'satellite'
       ? {
-          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
-          subdomains: ['server'],
+          url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+          attribution: '&copy; Google',
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
         }
       : {
           url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           attribution: '&copy; OpenStreetMap contributors',
           subdomains: ['a', 'b', 'c'],
         };
-
-  const markers = useMemo(
-    () =>
-      ideas.map((idea) => ({
-        ...idea,
-        icon: createMarkerIcon(idea.color || DEFAULT_PIN_COLOR),
-      })),
-    [ideas],
-  );
-
-  useEffect(() => {
-    L.Marker.prototype.options.icon = createMarkerIcon(DEFAULT_PIN_COLOR);
-  }, []);
 
   return (
     <div>
@@ -87,8 +76,8 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
       >
         <TileLayer {...tileLayer} />
         <ClickHandler onMapClick={onMapClick} />
-        {markers.map((idea) => (
-          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={idea.icon}>
+        {ideas.map((idea) => (
+          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
             <Popup>
               <strong>{idea.posName}</strong>
               <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
