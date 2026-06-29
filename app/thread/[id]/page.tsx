@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
-import { getThreadById, getThreadComments, addThreadComment, likeThreadComment, updateThread, deleteThread, storeEventTarget } from '../../../lib/store';
+import { getThreadById, getThreadComments, addThreadComment, likeThreadComment, updateThread, deleteThread, deleteThreadComment, storeEventTarget } from '../../../lib/store';
 import type { ThreadComment, ThreadItem } from '../../../lib/types';
 
 export default function ThreadDetailPage() {
@@ -161,18 +161,33 @@ export default function ThreadDetailPage() {
         </form>
         {message && <p className="small-text">{message}</p>}
         <div className="comment-box">
-          {comments.map((comment) => (
-            <div key={comment.id} className="comment-item">
-              <strong>{comment.userName}</strong>
-              <p>{comment.comTxt}</p>
-              <div className="action-row" style={{ justifyContent: 'space-between' }}>
-                <span className="small-text">{new Date(comment.createdAt).toLocaleString()}</span>
-                <button type="button" className="secondary" onClick={() => handleLike(comment.id)}>
-                  Good {comment.likes}
-                </button>
+          {comments.map((comment) => {
+            const canDeleteComment = user?.id === comment.userId;
+            return (
+              <div key={comment.id} className="comment-item">
+                <strong>{comment.userName}</strong>
+                <p>{comment.comTxt}</p>
+                <div className="action-row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                  <span className="small-text">{new Date(comment.createdAt).toLocaleString()}</span>
+                  <div className="action-row" style={{ gap: 8 }}>
+                    <button type="button" className="secondary" onClick={() => handleLike(comment.id)}>
+                      Good {comment.likes}
+                    </button>
+                    {canDeleteComment && (
+                      <button type="button" className="danger" onClick={async () => {
+                        if (!window.confirm('本当にこのコメントを削除しますか？')) return;
+                        await deleteThreadComment(comment.id);
+                        setComments((prev) => prev.filter((item) => item.id !== comment.id));
+                        setMessage('コメントを削除しました。');
+                      }}>
+                        削除
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {comments.length === 0 && <p>コメントはまだありません。</p>}
         </div>
       </section>

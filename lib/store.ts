@@ -361,6 +361,21 @@ export async function addIdeaComment(payload: {
   return comment;
 }
 
+export async function deleteIdeaComment(id: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('idea_comments').delete().eq('id', id);
+    if (!error) {
+      storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
+      return;
+    }
+    console.error('Supabase delete idea_comments failed:', error);
+  }
+
+  const comments = loadIdeaCommentsLocal().filter((comment) => comment.id !== id);
+  saveIdeaCommentsLocal(comments);
+  storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
+}
+
 export async function loadThreads(): Promise<ThreadItem[]> {
   if (supabase) {
     const { data, error } = await supabase
@@ -445,12 +460,15 @@ export async function deleteThread(id: string): Promise<void> {
   if (supabase) {
     const { error } = await supabase.from('threads').delete().eq('id', id);
     if (!error) {
+      storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
       return;
     }
+    console.error('Supabase delete threads failed:', error);
   }
 
   const threads = loadThreadsLocal().filter((thread) => thread.id !== id);
   saveThreadsLocal(threads);
+  storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
 }
 
 export async function loadThreadComments(): Promise<ThreadComment[]> {
@@ -516,6 +534,21 @@ export async function addThreadComment(payload: {
   saveThreadCommentsLocal(comments);
   storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
   return comment;
+}
+
+export async function deleteThreadComment(id: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('thread_comments').delete().eq('id', id);
+    if (!error) {
+      storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
+      return;
+    }
+    console.error('Supabase delete thread_comments failed:', error);
+  }
+
+  const comments = loadThreadCommentsLocal().filter((comment) => comment.id !== id);
+  saveThreadCommentsLocal(comments);
+  storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
 }
 
 export async function likeThreadComment(commentId: string): Promise<void> {

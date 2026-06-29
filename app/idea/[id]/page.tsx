@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
-import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea, storeEventTarget } from '../../../lib/store';
+import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea, deleteIdeaComment, storeEventTarget } from '../../../lib/store';
 import type { Idea, IdeaComment } from '../../../lib/types';
 
 export default function IdeaDetailPage() {
@@ -210,13 +210,28 @@ export default function IdeaDetailPage() {
         </form>
         {message && <p className="small-text">{message}</p>}
         <div className="comment-box">
-          {comments.map((comment) => (
-            <div key={comment.id} className="comment-item">
-              <strong>{comment.userName}</strong>
-              <p>{comment.comTxt}</p>
-              <span className="small-text">{new Date(comment.createdAt).toLocaleString()}</span>
-            </div>
-          ))}
+          {comments.map((comment) => {
+            const canDeleteComment = user?.id === comment.userId;
+            return (
+              <div key={comment.id} className="comment-item">
+                <strong>{comment.userName}</strong>
+                <p>{comment.comTxt}</p>
+                <div className="action-row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                  <span className="small-text">{new Date(comment.createdAt).toLocaleString()}</span>
+                  {canDeleteComment && (
+                    <button type="button" className="danger" onClick={async () => {
+                      if (!window.confirm('本当にこのコメントを削除しますか？')) return;
+                      await deleteIdeaComment(comment.id);
+                      setComments((prev) => prev.filter((item) => item.id !== comment.id));
+                      setMessage('コメントを削除しました。');
+                    }}>
+                      削除
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
     </main>
