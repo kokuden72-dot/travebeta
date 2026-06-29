@@ -39,9 +39,9 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
   const tileLayer =
     mapStyle === 'satellite'
       ? {
-          url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-          attribution: '&copy; Google',
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+          subdomains: ['server'],
         }
       : {
           url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
