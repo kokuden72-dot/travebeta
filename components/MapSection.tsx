@@ -44,13 +44,16 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
       <ClickHandler onMapClick={onMapClick} />
+      
       {ideas.map((idea) => (
         <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
           <Popup>
             <strong>{idea.posName}</strong>
             <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
             <div>{idea.latitude},{idea.longitude}</div>
-            <button id="btn">コピーする</button>
+            <button onClick={() => navigator.clipboard.writeText(`https://www.google.com/maps?q=${idea.latitude},${idea.longitude}`)}>
+              コピーする
+            </button>
           </Popup>
         </Marker>
       ))}
