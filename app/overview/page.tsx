@@ -49,11 +49,11 @@ export default function OverviewPage() {
     if (!mainTxt) {
       return;
     }
-    const tagsText1 = window.prompt('タグ1：最大3個をカンマ区切りで入力してください', '');
+    const tagsText1 = window.prompt('基本情報 (日付,場所名,金額、カンマ区切り。例: 8/15,東京駅,1000円)', '');
     if (tagsText1 === null) {
       return;
     }
-    const tagsText2 = window.prompt('タグ2：さらに最大3個をカンマ区切りで入力してください', '');
+    const tagsText2 = window.prompt('タグ：最大3個をカンマ区切りで入力してください', '');
     if (tagsText2 === null) {
       return;
     }
