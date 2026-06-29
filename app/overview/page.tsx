@@ -49,8 +49,15 @@ export default function OverviewPage() {
     if (!mainTxt) {
       return;
     }
-    const tagsText = window.prompt('タグを3つまでカンマ区切りで入力してください', '');
-    const tags = tagsText ? tagsText.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3) : [];
+    const tagsText1 = window.prompt('タグ1：最大3個をカンマ区切りで入力してください', '');
+    if (tagsText1 === null) {
+      return;
+    }
+    const tagsText2 = window.prompt('タグ2：さらに最大3個をカンマ区切りで入力してください', '');
+    if (tagsText2 === null) {
+      return;
+    }
+    const tags = [...(tagsText1 ? tagsText1.split(',').map((tag) => tag.trim()).filter(Boolean) : []), ...(tagsText2 ? tagsText2.split(',').map((tag) => tag.trim()).filter(Boolean) : [])].slice(0, 6);
     const newIdea = await addIdea({
       userId: user.id,
       userName: user.name,
