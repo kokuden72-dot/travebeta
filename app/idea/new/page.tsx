@@ -64,11 +64,11 @@ export default function NewIdeaPage() {
             <textarea value={mainTxt} onChange={(event) => setMainTxt(event.target.value)} />
           </label>
           <label>
-            タグ1 (最大3個、カンマ区切り)
+            基本情報 (日付,場所名,金額、カンマ区切り。例: 8/15,東京駅,1000円)
             <input value={tagsText1} onChange={(event) => setTagsText1(event.target.value)} />
           </label>
           <label>
-            タグ2 (最大3個、カンマ区切り)
+            タグ付け (最大3個、カンマ区切り)
             <input value={tagsText2} onChange={(event) => setTagsText2(event.target.value)} />
           </label>
           {error && <div className="small-text" style={{ color: '#c33' }}>{error}</div>}
