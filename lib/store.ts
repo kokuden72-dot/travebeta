@@ -47,6 +47,7 @@ function mapIdeaRow(row: any): Idea {
     mainTxt: row.main_txt,
     tags: Array.isArray(row.tags) ? row.tags : typeof row.tags === 'string' ? JSON.parse(row.tags) : [],
     color: row.color || DEFAULT_IDEA_COLOR,
+    icon: row.icon || undefined,
     latitude: row.latitude,
     longitude: row.longitude,
     likes: row.likes ?? 0,
@@ -96,6 +97,7 @@ function loadIdeasLocal(): Idea[] {
     mainTxt: idea.mainTxt ?? '',
     tags: idea.tags ?? [],
     color: idea.color || DEFAULT_IDEA_COLOR,
+    icon: idea.icon,
     latitude: idea.latitude ?? 0,
     longitude: idea.longitude ?? 0,
     likes: idea.likes ?? 0,
@@ -143,7 +145,7 @@ export async function loadIdeas(): Promise<Idea[]> {
   if (supabase) {
     const { data, error } = await supabase
       .from('ideas')
-      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,icon,latitude,longitude,likes,created_at')
       .order('created_at', { ascending: false });
     if (!error && data) {
       return data.map(mapIdeaRow);
@@ -164,7 +166,7 @@ export async function getIdeaById(id: string): Promise<Idea | undefined> {
   if (supabase) {
     const { data, error } = await supabase
       .from('ideas')
-      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,icon,latitude,longitude,likes,created_at')
       .eq('id', id)
       .maybeSingle();
     if (!error && data) {
@@ -181,6 +183,7 @@ export async function addIdea(payload: {
   mainTxt: string;
   tags: string[];
   color: string;
+  icon?: string;
   latitude: number;
   longitude: number;
 }): Promise<Idea> {
@@ -192,6 +195,7 @@ export async function addIdea(payload: {
     mainTxt: payload.mainTxt,
     tags: payload.tags,
     color: payload.color,
+    icon: payload.icon,
     latitude: payload.latitude,
     longitude: payload.longitude,
     likes: 0,
@@ -206,6 +210,7 @@ export async function addIdea(payload: {
       main_txt: idea.mainTxt,
       tags: idea.tags,
       color: idea.color,
+      icon: idea.icon,
       latitude: idea.latitude,
       longitude: idea.longitude,
       likes: idea.likes,
@@ -230,6 +235,7 @@ export async function updateIdea(id: string, payload: {
   mainTxt: string;
   tags: string[];
   color?: string;
+  icon?: string;
 }): Promise<Idea | undefined> {
   if (supabase) {
     const updatePayload: any = {
@@ -240,11 +246,14 @@ export async function updateIdea(id: string, payload: {
     if (payload.color) {
       updatePayload.color = payload.color;
     }
+    if (payload.icon !== undefined) {
+      updatePayload.icon = payload.icon;
+    }
     const { data, error } = await supabase
       .from('ideas')
       .update(updatePayload)
       .eq('id', id)
-      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,icon,latitude,longitude,likes,created_at')
       .maybeSingle();
     if (!error && data) {
       storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
@@ -254,7 +263,7 @@ export async function updateIdea(id: string, payload: {
 
   const ideas = loadIdeasLocal().map((idea) =>
     idea.id === id
-      ? { ...idea, posName: payload.posName, mainTxt: payload.mainTxt, tags: payload.tags, color: payload.color ?? idea.color }
+      ? { ...idea, posName: payload.posName, mainTxt: payload.mainTxt, tags: payload.tags, color: payload.color ?? idea.color, icon: payload.icon ?? idea.icon }
       : idea,
   );
   saveIdeasLocal(ideas);

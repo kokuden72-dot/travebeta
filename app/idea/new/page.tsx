@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
 import { addIdea } from '../../../lib/store';
+import { ICON_OPTIONS, DEFAULT_ICON } from '../../../lib/icons';
 
 export default function NewIdeaPage() {
   const { user } = useContext(UserContext);
@@ -14,6 +15,7 @@ export default function NewIdeaPage() {
   const [mainTxt, setMainTxt] = useState('');
   const [tagsText, setTagsText] = useState('');
   const [color, setColor] = useState('#3388ff');
+  const [icon, setIcon] = useState<string>(DEFAULT_ICON);
   const [error, setError] = useState('');
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -40,6 +42,7 @@ export default function NewIdeaPage() {
       mainTxt: mainTxt.trim(),
       tags,
       color,
+      icon,
       latitude: 35.681236,
       longitude: 139.767125,
     });
@@ -68,6 +71,17 @@ export default function NewIdeaPage() {
           <label>
             ピンの色
             <input type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+          </label>
+          <label>
+            ピンのアイコン
+            <select value={icon} onChange={(e) => setIcon(e.target.value)}>
+              {ICON_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt.split('/').pop()}</option>
+              ))}
+            </select>
+            <div style={{ marginTop: 8 }}>
+              <img src={icon} alt="icon preview" style={{ width: 28, height: 28 }} />
+            </div>
           </label>
           {error && <div className="small-text" style={{ color: '#c33' }}>{error}</div>}
           <div className="action-row">

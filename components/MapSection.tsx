@@ -17,6 +17,16 @@ function createMarkerIcon(color: string) {
   });
 }
 
+function createImageIcon(iconUrl: string) {
+  return new L.Icon({
+    iconUrl,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -20],
+    className: 'custom-image-icon',
+  });
+}
+
 interface MapSectionProps {
   ideas: Idea[];
   onMapClick: (latitude: number, longitude: number) => void;
@@ -51,7 +61,7 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
     () =>
       ideas.map((idea) => ({
         ...idea,
-        icon: createMarkerIcon(idea.color || DEFAULT_PIN_COLOR),
+        icon: idea.icon ? createImageIcon(idea.icon) : createMarkerIcon(idea.color || DEFAULT_PIN_COLOR),
       })),
     [ideas],
   );

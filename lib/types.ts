@@ -22,6 +22,7 @@ export interface Idea {
   mainTxt: string;
   tags: string[];
   color: string;
+  icon?: string;
   createdAt: string;
   latitude: number;
   longitude: number;

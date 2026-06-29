@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
 import { getIdeaById, getIdeaComments, addIdeaComment, likeIdea, updateIdea, deleteIdea, deleteIdeaComment, storeEventTarget } from '../../../lib/store';
+import { ICON_OPTIONS } from '../../../lib/icons';
 import type { Idea, IdeaComment } from '../../../lib/types';
 
 export default function IdeaDetailPage() {
@@ -21,6 +22,7 @@ export default function IdeaDetailPage() {
   const [editMainTxt, setEditMainTxt] = useState('');
   const [editTagsText, setEditTagsText] = useState('');
   const [editColor, setEditColor] = useState('#3388ff');
+  const [editIcon, setEditIcon] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!ideaId) return;
@@ -56,6 +58,7 @@ export default function IdeaDetailPage() {
     setEditMainTxt(idea.mainTxt);
     setEditTagsText(idea.tags.join(', '));
     setEditColor(idea.color || '#3388ff');
+    setEditIcon(idea.icon);
   }, [idea]);
 
   if (!idea) {
@@ -119,6 +122,7 @@ export default function IdeaDetailPage() {
       mainTxt: editMainTxt,
       tags,
       color: editColor,
+      icon: editIcon,
     });
     if (updated) {
       setIdea(updated);
@@ -153,7 +157,11 @@ export default function IdeaDetailPage() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <span style={{ width: 16, height: 16, borderRadius: '50%', background: idea.color, border: '1px solid rgba(0,0,0,0.12)' }} />
+          {idea.icon ? (
+            <img src={idea.icon} alt="icon" style={{ width: 16, height: 16 }} />
+          ) : (
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: idea.color, border: '1px solid rgba(0,0,0,0.12)' }} />
+          )}
           <span className="small-text">ピンの色: {idea.color}</span>
         </div>
         {isEditing ? (
@@ -169,6 +177,22 @@ export default function IdeaDetailPage() {
             <label>
               タグ (3個まで、カンマ区切り)
               <input value={editTagsText} onChange={(event) => setEditTagsText(event.target.value)} />
+            </label>
+            <label>
+              ピンの色
+              <input type="color" value={editColor} onChange={(event) => setEditColor(event.target.value)} />
+            </label>
+            <label>
+              ピンのアイコン
+              <select value={editIcon ?? ''} onChange={(e) => setEditIcon(e.target.value)}>
+                <option value="">(なし)</option>
+                {ICON_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt.split('/').pop()}</option>
+                ))}
+              </select>
+              <div style={{ marginTop: 8 }}>
+                {editIcon ? <img src={editIcon} alt="icon preview" style={{ width: 28, height: 28 }} /> : null}
+              </div>
             </label>
             <label>
               ピンの色
