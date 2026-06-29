@@ -163,6 +163,38 @@ export default function IdeaDetailPage() {
             <span style={{ width: 16, height: 16, borderRadius: '50%', background: idea.color, border: '1px solid rgba(0,0,0,0.12)' }} />
           )}
           <span className="small-text">ピンの色: {idea.color}</span>
+          {canEdit && !isEditing && (
+            <div style={{ marginLeft: 12 }}>
+              <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                ピン切替
+                <select
+                  value={idea.icon ?? ''}
+                  onChange={async (e) => {
+                    const newIcon = e.target.value || undefined;
+                    try {
+                      const updated = await updateIdea(idea.id, {
+                        posName: idea.posName,
+                        mainTxt: idea.mainTxt,
+                        tags: idea.tags,
+                        icon: newIcon,
+                        color: idea.color,
+                      });
+                      if (updated) setIdea(updated);
+                      setMessage('ピンを更新しました。');
+                    } catch (err) {
+                      console.error('ピン更新に失敗しました', err);
+                      setMessage('ピンの更新に失敗しました。');
+                    }
+                  }}
+                >
+                  <option value="">(なし)</option>
+                  {ICON_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt.split('/').pop()}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
         </div>
         {isEditing ? (
           <div className="field-group">
@@ -193,10 +225,6 @@ export default function IdeaDetailPage() {
               <div style={{ marginTop: 8 }}>
                 {editIcon ? <img src={editIcon} alt="icon preview" style={{ width: 28, height: 28 }} /> : null}
               </div>
-            </label>
-            <label>
-              ピンの色
-              <input type="color" value={editColor} onChange={(event) => setEditColor(event.target.value)} />
             </label>
             <div className="action-row">
               <button type="button" className="secondary" onClick={cancelEdit}>
