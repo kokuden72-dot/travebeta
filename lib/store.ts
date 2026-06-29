@@ -368,7 +368,7 @@ export async function deleteIdeaComment(id: string): Promise<void> {
       storeEventTarget.dispatchEvent(new Event('ideaCommentsUpdated'));
       return;
     }
-    console.error('Supabase delete idea_comments failed:', error);
+    throw new Error('Supabase delete idea_comments failed: ' + (error?.message ?? 'unknown error'));
   }
 
   const comments = loadIdeaCommentsLocal().filter((comment) => comment.id !== id);
@@ -463,7 +463,7 @@ export async function deleteThread(id: string): Promise<void> {
       storeEventTarget.dispatchEvent(new Event('threadsUpdated'));
       return;
     }
-    console.error('Supabase delete threads failed:', error);
+    throw new Error('Supabase delete threads failed: ' + (error?.message ?? 'unknown error'));
   }
 
   const threads = loadThreadsLocal().filter((thread) => thread.id !== id);
@@ -543,7 +543,7 @@ export async function deleteThreadComment(id: string): Promise<void> {
       storeEventTarget.dispatchEvent(new Event('threadCommentsUpdated'));
       return;
     }
-    console.error('Supabase delete thread_comments failed:', error);
+    throw new Error('Supabase delete thread_comments failed: ' + (error?.message ?? 'unknown error'));
   }
 
   const comments = loadThreadCommentsLocal().filter((comment) => comment.id !== id);

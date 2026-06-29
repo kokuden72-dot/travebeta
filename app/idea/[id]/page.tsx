@@ -221,9 +221,14 @@ export default function IdeaDetailPage() {
                   {canDeleteComment && (
                     <button type="button" className="danger" onClick={async () => {
                       if (!window.confirm('本当にこのコメントを削除しますか？')) return;
-                      await deleteIdeaComment(comment.id);
-                      setComments((prev) => prev.filter((item) => item.id !== comment.id));
-                      setMessage('コメントを削除しました。');
+                      try {
+                        await deleteIdeaComment(comment.id);
+                        setComments((prev) => prev.filter((item) => item.id !== comment.id));
+                        setMessage('コメントを削除しました。');
+                      } catch (error) {
+                        console.error('コメント削除に失敗しました:', error);
+                        setMessage('コメントの削除中にエラーが発生しました。');
+                      }
                     }}>
                       削除
                     </button>
