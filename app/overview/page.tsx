@@ -41,17 +41,12 @@ export default function OverviewPage() {
   const sortedIdeas = useMemo(() => [...ideas].sort((a, b) => b.likes - a.likes), [ideas]);
 
   const handleMapClick = async (latitude: number, longitude: number) => {
-    if (!user) {
-      setMessage('ログインしてから投稿してください。');
-      return;
-    }
-
     setPendingLocation({ latitude, longitude });
     setPendingPosName('');
     setPendingMainTxt('');
     setPendingTagsText('');
     setPendingColor('#3388ff');
-    setMessage('投稿内容を入力して保存してください。');
+    setMessage(user ? '投稿内容を入力して保存してください。' : 'ログインすると投稿できます。');
   };
 
   const cancelPending = () => {
@@ -72,9 +67,14 @@ export default function OverviewPage() {
       .filter(Boolean)
       .slice(0, 3);
 
+    if (!user) {
+      setMessage('ログインしてから投稿してください。');
+      return;
+    }
+
     const newIdea = await addIdea({
-      userId: user!.id,
-      userName: user!.name,
+      userId: user.id,
+      userName: user.name,
       posName: pendingPosName.trim(),
       mainTxt: pendingMainTxt.trim(),
       tags,
