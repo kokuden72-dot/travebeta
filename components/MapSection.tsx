@@ -48,34 +48,21 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
         };
 
   return (
-    <MapContainer
-      center={[35.68, 139.76]}
-      zoom={13}
-      scrollWheelZoom={false}
-      className="leaflet-container"
-      style={{ width: '100%', minHeight: '420px', position: 'relative' }}
-    >
-      <TileLayer url={tileConfig.url} attribution={tileConfig.attribution} />
+    <div>
       <div
         style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 1000,
-          background: 'rgba(255,255,255,0.9)',
-          padding: 6,
-          borderRadius: 6,
+          marginBottom: 12,
           display: 'flex',
-          gap: 6,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+          justifyContent: 'flex-end',
+          gap: 8,
         }}
       >
         <button
           type="button"
           onClick={() => setMapType('normal')}
           style={{
-            padding: '6px 8px',
-            borderRadius: 4,
+            padding: '8px 12px',
+            borderRadius: 6,
             border: '1px solid #ddd',
             background: mapType === 'normal' ? '#111827' : 'white',
             color: mapType === 'normal' ? 'white' : 'inherit',
@@ -89,8 +76,8 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
           type="button"
           onClick={() => setMapType('satellite')}
           style={{
-            padding: '6px 8px',
-            borderRadius: 4,
+            padding: '8px 12px',
+            borderRadius: 6,
             border: '1px solid #ddd',
             background: mapType === 'satellite' ? '#111827' : 'white',
             color: mapType === 'satellite' ? 'white' : 'inherit',
@@ -101,19 +88,29 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
           航空
         </button>
       </div>
-      <ClickHandler onMapClick={onMapClick} />
-      {ideas.map((idea) => (
-        <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
-          <Popup>
-            <strong>{idea.posName}</strong>
-            <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
-            <div>{idea.latitude},{idea.longitude}</div>
-            <button onClick={() => navigator.clipboard.writeText(`https://www.google.com/maps?q=${idea.latitude},${idea.longitude}`)}>
-              コピーする
-            </button>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+
+      <MapContainer
+        center={[35.68, 139.76]}
+        zoom={13}
+        scrollWheelZoom={false}
+        className="leaflet-container"
+        style={{ width: '100%', minHeight: '420px' }}
+      >
+        <TileLayer url={tileConfig.url} attribution={tileConfig.attribution} />
+        <ClickHandler onMapClick={onMapClick} />
+        {ideas.map((idea) => (
+          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
+            <Popup>
+              <strong>{idea.posName}</strong>
+              <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
+              <div>{idea.latitude},{idea.longitude}</div>
+              <button onClick={() => navigator.clipboard.writeText(`https://www.google.com/maps?q=${idea.latitude},${idea.longitude}`)}>
+                コピーする
+              </button>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 }
