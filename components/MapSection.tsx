@@ -49,6 +49,7 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
           <Popup>
             <strong>{idea.posName}</strong>
             <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
+            <div>Latitude: {idea.latitude}, Longitude: {idea.longitude}</div>
           </Popup>
         </Marker>
       ))}
