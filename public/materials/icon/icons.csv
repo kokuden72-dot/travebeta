@@ -1,0 +1,7 @@
+filename,label,r,g,b
+icon_red.svg,Red,200,80,80
+icon_blue.svg,Blue,80,130,255
+icon_green.svg,Green,80,200,120
+icon_yellow.svg,Yellow,255,200,80
+icon_purple.svg,Purple,160,90,220
+icon_pale.svg,Pale,200,200,220
