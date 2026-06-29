@@ -7,12 +7,20 @@ import Header from '../../../components/Header';
 import { UserContext } from '../../../components/UserProvider';
 import { addIdea } from '../../../lib/store';
 
+const parseTags = (text: string) =>
+  text
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
 export default function NewIdeaPage() {
   const { user } = useContext(UserContext);
   const router = useRouter();
   const [posName, setPosName] = useState('');
   const [mainTxt, setMainTxt] = useState('');
-  const [tagsText, setTagsText] = useState('');
+  const [tagsText1, setTagsText1] = useState('');
+  const [tagsText2, setTagsText2] = useState('');
   const [error, setError] = useState('');
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,11 +34,7 @@ export default function NewIdeaPage() {
       return;
     }
 
-    const tags = tagsText
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean)
-      .slice(0, 3);
+    const tags = [...parseTags(tagsText1), ...parseTags(tagsText2)].slice(0, 6);
 
     const idea = await addIdea({
       userId: user.id,
@@ -60,8 +64,12 @@ export default function NewIdeaPage() {
             <textarea value={mainTxt} onChange={(event) => setMainTxt(event.target.value)} />
           </label>
           <label>
-            タグ付け (3個まで、カンマ区切り)
-            <input value={tagsText} onChange={(event) => setTagsText(event.target.value)} />
+            タグ1 (最大3個、カンマ区切り)
+            <input value={tagsText1} onChange={(event) => setTagsText1(event.target.value)} />
+          </label>
+          <label>
+            タグ2 (最大3個、カンマ区切り)
+            <input value={tagsText2} onChange={(event) => setTagsText2(event.target.value)} />
           </label>
           {error && <div className="small-text" style={{ color: '#c33' }}>{error}</div>}
           <div className="action-row">
