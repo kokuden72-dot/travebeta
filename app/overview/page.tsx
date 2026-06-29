@@ -35,6 +35,11 @@ export default function OverviewPage() {
 
   const sortedIdeas = useMemo(() => [...ideas].sort((a, b) => b.likes - a.likes), [ideas]);
 
+  const normalizeColor = (value: string | null): string => {
+    const color = (value || '#3388ff').trim();
+    return /^#([0-9A-F]{3}){1,2}$/i.test(color) ? color : '#3388ff';
+  };
+
   const handleMapClick = async (latitude: number, longitude: number) => {
     if (!user) {
       setMessage('ログインしてから投稿してください。');
@@ -51,12 +56,15 @@ export default function OverviewPage() {
     }
     const tagsText = window.prompt('タグを3つまでカンマ区切りで入力してください', '');
     const tags = tagsText ? tagsText.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3) : [];
+    const color = normalizeColor(window.prompt('このピンの色を入力してください（例: #ff0000）', '#3388ff'));
+
     const newIdea = await addIdea({
       userId: user.id,
       userName: user.name,
       posName,
       mainTxt,
       tags,
+      color,
       latitude,
       longitude,
     });

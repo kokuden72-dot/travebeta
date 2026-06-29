@@ -1,45 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Idea } from '../lib/types';
 
-const markerIconUrls: Record<string, { iconUrl: string; iconRetinaUrl: string }> = {
-  blue: {
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  },
-  red: {
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  },
-  green: {
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-    iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  },
-  orange: {
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-  },
-  violet: {
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
-    iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-  },
-};
+const DEFAULT_PIN_COLOR = '#3388ff';
 
-const markerShadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
-
-const createMarkerIcon = (color: keyof typeof markerIconUrls) =>
-  new L.Icon({
-    iconUrl: markerIconUrls[color].iconUrl,
-    iconRetinaUrl: markerIconUrls[color].iconRetinaUrl,
-    shadowUrl: markerShadowUrl,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
+function createMarkerIcon(color: string) {
+  return new L.DivIcon({
+    className: 'custom-leaflet-marker',
+    html: `<div class="custom-marker" style="background:${color};border:2px solid #fff;border-radius:50%;width:20px;height:20px;box-shadow:0 0 0 4px rgba(0,0,0,0.12)"></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -20],
   });
+}
 
 interface MapSectionProps {
   ideas: Idea[];
@@ -57,11 +33,6 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 
 export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
   const [mapStyle, setMapStyle] = useState<'standard' | 'satellite'>('standard');
-  const [markerColor, setMarkerColor] = useState<'blue' | 'red' | 'green' | 'orange' | 'violet'>('blue');
-
-  useEffect(() => {
-    L.Marker.prototype.options.icon = createMarkerIcon(markerColor);
-  }, [markerColor]);
 
   const tileLayer =
     mapStyle === 'satellite'
@@ -75,6 +46,19 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
           attribution: '&copy; OpenStreetMap contributors',
           subdomains: ['a', 'b', 'c'],
         };
+
+  const markers = useMemo(
+    () =>
+      ideas.map((idea) => ({
+        ...idea,
+        icon: createMarkerIcon(idea.color || DEFAULT_PIN_COLOR),
+      })),
+    [ideas],
+  );
+
+  useEffect(() => {
+    L.Marker.prototype.options.icon = createMarkerIcon(DEFAULT_PIN_COLOR);
+  }, []);
 
   return (
     <div>
@@ -94,43 +78,6 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
           航空地図
         </button>
       </div>
-      <div className="map-controls">
-        <button
-          type="button"
-          className={markerColor === 'blue' ? 'active' : ''}
-          onClick={() => setMarkerColor('blue')}
-        >
-          青ピン
-        </button>
-        <button
-          type="button"
-          className={markerColor === 'red' ? 'active' : ''}
-          onClick={() => setMarkerColor('red')}
-        >
-          赤ピン
-        </button>
-        <button
-          type="button"
-          className={markerColor === 'green' ? 'active' : ''}
-          onClick={() => setMarkerColor('green')}
-        >
-          緑ピン
-        </button>
-        <button
-          type="button"
-          className={markerColor === 'orange' ? 'active' : ''}
-          onClick={() => setMarkerColor('orange')}
-        >
-          橙ピン
-        </button>
-        <button
-          type="button"
-          className={markerColor === 'violet' ? 'active' : ''}
-          onClick={() => setMarkerColor('violet')}
-        >
-          紫ピン
-        </button>
-      </div>
       <MapContainer
         center={[35.68, 139.76]}
         zoom={13}
@@ -140,8 +87,8 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
       >
         <TileLayer {...tileLayer} />
         <ClickHandler onMapClick={onMapClick} />
-        {ideas.map((idea) => (
-          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={createMarkerIcon(markerColor)}>
+        {markers.map((idea) => (
+          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={idea.icon}>
             <Popup>
               <strong>{idea.posName}</strong>
               <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>

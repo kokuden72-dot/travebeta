@@ -13,6 +13,7 @@ export default function NewIdeaPage() {
   const [posName, setPosName] = useState('');
   const [mainTxt, setMainTxt] = useState('');
   const [tagsText, setTagsText] = useState('');
+  const [color, setColor] = useState('#3388ff');
   const [error, setError] = useState('');
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -38,6 +39,7 @@ export default function NewIdeaPage() {
       posName: posName.trim(),
       mainTxt: mainTxt.trim(),
       tags,
+      color,
       latitude: 35.681236,
       longitude: 139.767125,
     });
@@ -62,6 +64,10 @@ export default function NewIdeaPage() {
           <label>
             タグ付け (3個まで、カンマ区切り)
             <input value={tagsText} onChange={(event) => setTagsText(event.target.value)} />
+          </label>
+          <label>
+            ピンの色
+            <input type="color" value={color} onChange={(event) => setColor(event.target.value)} />
           </label>
           {error && <div className="small-text" style={{ color: '#c33' }}>{error}</div>}
           <div className="action-row">

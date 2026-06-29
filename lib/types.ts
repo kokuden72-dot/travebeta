@@ -21,6 +21,7 @@ export interface Idea {
   posName: string;
   mainTxt: string;
   tags: string[];
+  color: string;
   createdAt: string;
   latitude: number;
   longitude: number;

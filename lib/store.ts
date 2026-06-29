@@ -36,6 +36,8 @@ const THREADS_KEY = 'travebeta-threads';
 const THREAD_COMMENTS_KEY = 'travebeta-thread-comments';
 const USER_KEY = 'travebeta-user';
 
+const DEFAULT_IDEA_COLOR = '#3388ff';
+
 function mapIdeaRow(row: any): Idea {
   return {
     id: row.id,
@@ -44,6 +46,7 @@ function mapIdeaRow(row: any): Idea {
     posName: row.pos_name,
     mainTxt: row.main_txt,
     tags: Array.isArray(row.tags) ? row.tags : typeof row.tags === 'string' ? JSON.parse(row.tags) : [],
+    color: row.color || DEFAULT_IDEA_COLOR,
     latitude: row.latitude,
     longitude: row.longitude,
     likes: row.likes ?? 0,
@@ -85,7 +88,19 @@ function mapThreadCommentRow(row: any): ThreadComment {
 }
 
 function loadIdeasLocal(): Idea[] {
-  return loadFromStorage<Idea[]>(IDEAS_KEY, []);
+  return loadFromStorage<Partial<Idea>[]>(IDEAS_KEY, []).map((idea) => ({
+    id: idea.id ?? createId('idea'),
+    userId: idea.userId ?? 'anonymous',
+    userName: idea.userName ?? 'anonymous',
+    posName: idea.posName ?? '',
+    mainTxt: idea.mainTxt ?? '',
+    tags: idea.tags ?? [],
+    color: idea.color || DEFAULT_IDEA_COLOR,
+    latitude: idea.latitude ?? 0,
+    longitude: idea.longitude ?? 0,
+    likes: idea.likes ?? 0,
+    createdAt: idea.createdAt ?? new Date().toISOString(),
+  }));
 }
 
 function saveIdeasLocal(ideas: Idea[]): void {
@@ -128,7 +143,7 @@ export async function loadIdeas(): Promise<Idea[]> {
   if (supabase) {
     const { data, error } = await supabase
       .from('ideas')
-      .select('id,user_id,user_name,pos_name,main_txt,tags,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
       .order('created_at', { ascending: false });
     if (!error && data) {
       return data.map(mapIdeaRow);
@@ -149,7 +164,7 @@ export async function getIdeaById(id: string): Promise<Idea | undefined> {
   if (supabase) {
     const { data, error } = await supabase
       .from('ideas')
-      .select('id,user_id,user_name,pos_name,main_txt,tags,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
       .eq('id', id)
       .maybeSingle();
     if (!error && data) {
@@ -165,6 +180,7 @@ export async function addIdea(payload: {
   posName: string;
   mainTxt: string;
   tags: string[];
+  color: string;
   latitude: number;
   longitude: number;
 }): Promise<Idea> {
@@ -175,6 +191,7 @@ export async function addIdea(payload: {
     posName: payload.posName,
     mainTxt: payload.mainTxt,
     tags: payload.tags,
+    color: payload.color,
     latitude: payload.latitude,
     longitude: payload.longitude,
     likes: 0,
@@ -188,6 +205,7 @@ export async function addIdea(payload: {
       pos_name: idea.posName,
       main_txt: idea.mainTxt,
       tags: idea.tags,
+      color: idea.color,
       latitude: idea.latitude,
       longitude: idea.longitude,
       likes: idea.likes,
@@ -211,17 +229,22 @@ export async function updateIdea(id: string, payload: {
   posName: string;
   mainTxt: string;
   tags: string[];
+  color?: string;
 }): Promise<Idea | undefined> {
   if (supabase) {
+    const updatePayload: any = {
+      pos_name: payload.posName,
+      main_txt: payload.mainTxt,
+      tags: payload.tags,
+    };
+    if (payload.color) {
+      updatePayload.color = payload.color;
+    }
     const { data, error } = await supabase
       .from('ideas')
-      .update({
-        pos_name: payload.posName,
-        main_txt: payload.mainTxt,
-        tags: payload.tags,
-      })
+      .update(updatePayload)
       .eq('id', id)
-      .select('id,user_id,user_name,pos_name,main_txt,tags,latitude,longitude,likes,created_at')
+      .select('id,user_id,user_name,pos_name,main_txt,tags,color,latitude,longitude,likes,created_at')
       .maybeSingle();
     if (!error && data) {
       storeEventTarget.dispatchEvent(new Event('ideasUpdated'));
@@ -231,7 +254,7 @@ export async function updateIdea(id: string, payload: {
 
   const ideas = loadIdeasLocal().map((idea) =>
     idea.id === id
-      ? { ...idea, posName: payload.posName, mainTxt: payload.mainTxt, tags: payload.tags }
+      ? { ...idea, posName: payload.posName, mainTxt: payload.mainTxt, tags: payload.tags, color: payload.color ?? idea.color }
       : idea,
   );
   saveIdeasLocal(ideas);

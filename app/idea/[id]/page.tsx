@@ -20,6 +20,7 @@ export default function IdeaDetailPage() {
   const [editPosName, setEditPosName] = useState('');
   const [editMainTxt, setEditMainTxt] = useState('');
   const [editTagsText, setEditTagsText] = useState('');
+  const [editColor, setEditColor] = useState('#3388ff');
 
   useEffect(() => {
     if (!ideaId) return;
@@ -54,6 +55,7 @@ export default function IdeaDetailPage() {
     setEditPosName(idea.posName);
     setEditMainTxt(idea.mainTxt);
     setEditTagsText(idea.tags.join(', '));
+    setEditColor(idea.color || '#3388ff');
   }, [idea]);
 
   if (!idea) {
@@ -116,6 +118,7 @@ export default function IdeaDetailPage() {
       posName: editPosName,
       mainTxt: editMainTxt,
       tags,
+      color: editColor,
     });
     if (updated) {
       setIdea(updated);
@@ -162,6 +165,10 @@ export default function IdeaDetailPage() {
             <label>
               タグ (3個まで、カンマ区切り)
               <input value={editTagsText} onChange={(event) => setEditTagsText(event.target.value)} />
+            </label>
+            <label>
+              ピンの色
+              <input type="color" value={editColor} onChange={(event) => setEditColor(event.target.value)} />
             </label>
             <div className="action-row">
               <button type="button" className="secondary" onClick={cancelEdit}>
