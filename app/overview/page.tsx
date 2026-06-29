@@ -6,6 +6,7 @@ import Header from '../../components/Header';
 import { SettingsContext } from '../../components/SettingsProvider';
 import { UserContext } from '../../components/UserProvider';
 import { addIdea, loadIdeas, storeEventTarget } from '../../lib/store';
+import { ICON_OPTIONS, DEFAULT_ICON } from '../../lib/icons';
 import type { Idea } from '../../lib/types';
 
 const MapSection = dynamic(() => import('../../components/MapSection'), { ssr: false });
@@ -20,6 +21,7 @@ export default function OverviewPage() {
   const [pendingMainTxt, setPendingMainTxt] = useState('');
   const [pendingTagsText, setPendingTagsText] = useState('');
   const [pendingColor, setPendingColor] = useState('#3388ff');
+  const [pendingIcon, setPendingIcon] = useState<string>(DEFAULT_ICON);
 
   useEffect(() => {
     const load = async () => {
@@ -46,6 +48,7 @@ export default function OverviewPage() {
     setPendingMainTxt('');
     setPendingTagsText('');
     setPendingColor('#3388ff');
+    setPendingIcon(DEFAULT_ICON);
     setMessage(user ? '投稿内容を入力して保存してください。' : 'ログインすると投稿できます。');
   };
 
@@ -79,6 +82,7 @@ export default function OverviewPage() {
       mainTxt: pendingMainTxt.trim(),
       tags,
       color: pendingColor,
+      icon: pendingIcon,
       latitude: pendingLocation.latitude,
       longitude: pendingLocation.longitude,
     });
@@ -115,6 +119,17 @@ export default function OverviewPage() {
               <label>
                 ピンの色
                 <input type="color" value={pendingColor} onChange={(event) => setPendingColor(event.target.value)} />
+              </label>
+              <label>
+                ピンのアイコン
+                <select value={pendingIcon} onChange={(e) => setPendingIcon(e.target.value)}>
+                  {ICON_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt.split('/').pop()}</option>
+                  ))}
+                </select>
+                <div style={{ marginTop: 8 }}>
+                  <img src={pendingIcon} alt="icon preview" style={{ width: 28, height: 28 }} />
+                </div>
               </label>
               <div className="action-row">
                 <button type="button" className="secondary" onClick={cancelPending}>
