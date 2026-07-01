@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Idea } from '../lib/types';
+import '../node_modules/leaflet/dist/leaflet';
+import '../node_modules/leaflet-control-geocoder/dist/control.geocoder';
+import '../node_modules/leaflet-control-geocoder';
 
 const markerIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -29,6 +32,30 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
   return null;
 }
 
+function GeocoderControl() {
+  const map = useMap();
+
+  useEffect(() => {
+    const control = L.Control.geocoder({
+      defaultMarkGeocode: true,
+    });
+
+    control.addTo(map);
+
+    const button = map.getContainer().querySelector('.leaflet-control-geocoder-icon');
+    if (button instanceof HTMLButtonElement) {
+      button.textContent = '検索';
+      button.setAttribute('aria-label', '検索');
+    }
+
+    return () => {
+      control.remove();
+    };
+  }, [map]);
+
+  return null;
+}
+
 export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
   useEffect(() => {
     L.Marker.prototype.options.icon = markerIcon;
@@ -51,7 +78,7 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
     <div>
       <div
         style={{
-          marginBottom: 12,
+          marginBottom: 4,
           display: 'flex',
           justifyContent: 'flex-end',
           gap: 8,
@@ -91,12 +118,13 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
 
       <MapContainer
         center={[35.68, 139.76]}
-        zoom={13}
+        zoom={14}
         scrollWheelZoom={false}
         className="leaflet-container"
         style={{ width: '100%', minHeight: '420px' }}
       >
         <TileLayer url={tileConfig.url} attribution={tileConfig.attribution} />
+        <GeocoderControl />
         <ClickHandler onMapClick={onMapClick} />
         {ideas.map((idea) => (
           <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>

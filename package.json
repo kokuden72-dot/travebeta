@@ -11,13 +11,15 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
     "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^3.3.1",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1"
   },
   "devDependencies": {
-    "@types/leaflet": "^1.9.5",
+    "@types/leaflet": "^1.9.21",
+    "@types/leaflet-control-geocoder": "^3.0.0",
     "@types/node": "^20.14.2",
     "@types/react": "18.3.31",
     "@types/react-dom": "^18.3.0",
