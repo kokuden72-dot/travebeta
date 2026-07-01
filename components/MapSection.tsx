@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { Idea } from '../lib/types';
-import '../node_modules/leaflet/dist/leaflet';
-import '../node_modules/leaflet-control-geocoder/dist/control.geocoder';
-import '../node_modules/leaflet-control-geocoder';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.js';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 
 const markerIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
