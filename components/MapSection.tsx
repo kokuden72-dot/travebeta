@@ -35,12 +35,26 @@ function normalizeNumericCharacters(value: string) {
   return value.replace(/[０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xfee0));
 }
 
+function normalizeGsiQuery(value: string) {
+  const normalized = normalizeNumericCharacters(value.trim());
+
+  return normalized
+    .replace(/〒/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([都道府県])(?=\S)/g, '$1')
+    .replace(/([都道府県])(.+?)(市|区|町|村)(?=\S)/g, '$1$2$3')
+    .replace(/([0-9]+)丁目/g, '$1丁目')
+    .replace(/([0-9]+)番/g, '$1番')
+    .replace(/([0-9]+)号/g, '$1号')
+    .trim();
+}
+
 function createSearchGeocoder() {
   const fallbackGeocoder = (L.Control as any).Geocoder?.nominatim?.();
 
   return {
     geocode(query: string, cb: (results: any[], status: string) => void) {
-      const term = typeof query === 'string' ? normalizeNumericCharacters(query.trim()) : '';
+      const term = typeof query === 'string' ? normalizeGsiQuery(query) : '';
       if (!term) {
         cb([], 'NOT_FOUND');
         return;
