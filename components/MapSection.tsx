@@ -104,6 +104,13 @@ function GeocoderControl() {
       placeholder: '住所・地名を検索',
     });
 
+    control.on('markgeocode', (event: any) => {
+      const { center } = event.geocode;
+      if (center) {
+        map.setView(center, 16, { animate: true });
+      }
+    });
+
     control.addTo(map);
 
     const button = map.getContainer().querySelector('.leaflet-control-geocoder-icon');
