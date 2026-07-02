@@ -41,11 +41,19 @@ function normalizeGsiQuery(value: string) {
   return normalized
     .replace(/〒/g, '')
     .replace(/\s+/g, ' ')
-    .replace(/\s+([都道府県])(?=\S)/g, '$1')
-    .replace(/([都道府県])(.+?)(市|区|町|村)(?=\S)/g, '$1$2$3')
+    .replace(/([都道府県])(?=\S)/g, '$1')
+    .replace(/([都道府県])(\S)/g, '$1$2')
     .replace(/([0-9]+)丁目/g, '$1丁目')
     .replace(/([0-9]+)番/g, '$1番')
     .replace(/([0-9]+)号/g, '$1号')
+    .replace(/−/g, '-')
+    .replace(/－/g, '-')
+    .replace(/−/g, '-')
+    .replace(/([0-9]+)-([0-9]+)/g, '$1-$2')
+    .replace(/([0-9]+)ー([0-9]+)/g, '$1-$2')
+    .replace(/([0-9]+)−([0-9]+)/g, '$1-$2')
+    .replace(/([0-9]+)（/g, '$1（')
+    .replace(/([0-9]+)）/g, '$1）')
     .trim();
 }
 
