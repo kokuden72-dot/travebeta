@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const execFileAsync = promisify(execFile);
 
-function normalizeGsiResult(item: any, fallbackQuery: string) {
+function normalizeAbrResult(item: any, fallbackQuery: string) {
   const lat = item?.lat ?? item?.latitude ?? item?.geometry?.coordinates?.[1];
   const lng = item?.lng ?? item?.longitude ?? item?.geometry?.coordinates?.[0];
 
@@ -14,9 +14,9 @@ function normalizeGsiResult(item: any, fallbackQuery: string) {
   }
 
   return {
-    name: item?.name ?? item?.normalized_address ?? item?.address ?? fallbackQuery,
-    html: item?.name ?? item?.normalized_address ?? item?.address ?? fallbackQuery,
-    center: [lat, lng],
+    latitude: lat,
+    longitude: lng,
+    query: fallbackQuery,
   };
 }
 
@@ -30,13 +30,13 @@ function normalizeGsiApiResults(data: any[], fallbackQuery: string) {
       if (item?.geometry?.coordinates && Array.isArray(item.geometry.coordinates)) {
         const [lng, lat] = item.geometry.coordinates;
         return {
-          name: item?.properties?.title ?? item?.properties?.address ?? fallbackQuery,
-          html: item?.properties?.title ?? item?.properties?.address ?? fallbackQuery,
-          center: [lat, lng],
+          latitude: lat,
+          longitude: lng,
+          query: fallbackQuery,
         };
       }
 
-      return normalizeGsiResult(item, fallbackQuery);
+      return normalizeAbrResult(item, fallbackQuery);
     })
     .filter(Boolean);
 }
@@ -57,7 +57,7 @@ async function geocodeWithAbr(query: string) {
   const list = Array.isArray(parsed) ? parsed : parsed?.results ?? parsed?.items ?? [];
 
   return list
-    .map((item: any) => normalizeGsiResult(item, query))
+    .map((item: any) => normalizeAbrResult(item, query))
     .filter(Boolean);
 }
 

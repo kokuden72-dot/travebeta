@@ -79,9 +79,9 @@ function createSearchGeocoder() {
           const items = Array.isArray(payload?.results) ? payload.results : [];
           if (items.length > 0) {
             const results = items.map((item: any) => ({
-              name: item.name ?? term,
-              html: item.html ?? term,
-              center: L.latLng(item.center[0], item.center[1]),
+              name: term,
+              html: term,
+              center: L.latLng(item.latitude, item.longitude),
             }));
             cb(results, 'OK');
             return;
