@@ -68,25 +68,20 @@ function createSearchGeocoder() {
         return;
       }
 
-      fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(term)}`)
+      fetch(`/api/geocode?query=${encodeURIComponent(term)}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error(`GSI API error: ${response.status}`);
+            throw new Error(`Geocode API error: ${response.status}`);
           }
           return response.json();
         })
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            const results = data.map((item: any) => ({
-              name: item.properties?.title ?? item.properties?.address ?? term,
-              html: item.properties?.title ?? item.properties?.address ?? term,
-              center: L.latLng(item.geometry.coordinates[1], item.geometry.coordinates[0]),
-              bbox: Array.isArray(item.bbox) && item.bbox.length === 4
-                ? L.latLngBounds(
-                    L.latLng(item.bbox[1], item.bbox[0]),
-                    L.latLng(item.bbox[3], item.bbox[2]),
-                  )
-                : undefined,
+        .then((payload) => {
+          const items = Array.isArray(payload?.results) ? payload.results : [];
+          if (items.length > 0) {
+            const results = items.map((item: any) => ({
+              name: item.name ?? term,
+              html: item.html ?? term,
+              center: L.latLng(item.center[0], item.center[1]),
             }));
             cb(results, 'OK');
             return;
