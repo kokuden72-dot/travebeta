@@ -6,16 +6,16 @@ import { NextRequest, NextResponse } from 'next/server';
 const execFileAsync = promisify(execFile);
 
 function normalizeAbrResult(item: any, fallbackQuery: string) {
-  const lat = item?.lat ?? item?.latitude ?? item?.geometry?.coordinates?.[1];
-  const lng = item?.lng ?? item?.longitude ?? item?.geometry?.coordinates?.[0];
+  const lat = item?.lat ?? item?.latitude ?? item?.geometry?.coordinates?.[1] ?? item?.y ?? item?.location?.lat;
+  const lng = item?.lng ?? item?.longitude ?? item?.geometry?.coordinates?.[0] ?? item?.x ?? item?.location?.lng;
 
   if (typeof lat !== 'number' || typeof lng !== 'number') {
     return null;
   }
 
   return {
-    latitude: lat,
-    longitude: lng,
+    latitude: Number(lat),
+    longitude: Number(lng),
     query: fallbackQuery,
   };
 }

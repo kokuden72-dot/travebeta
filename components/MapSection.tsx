@@ -57,7 +57,7 @@ function normalizeGsiQuery(value: string) {
     .trim();
 }
 
-function createSearchGeocoder() {
+function createSearchGeocoder(map?: L.Map) {
   const fallbackGeocoder = (L.Control as any).Geocoder?.nominatim?.();
 
   return {
@@ -83,6 +83,11 @@ function createSearchGeocoder() {
               html: term,
               center: L.latLng(item.latitude, item.longitude),
             }));
+
+            if (map && results[0]?.center) {
+              map.setView(results[0].center, 16, { animate: true });
+            }
+
             cb(results, 'OK');
             return;
           }
@@ -117,7 +122,7 @@ function GeocoderControl() {
   useEffect(() => {
     const control = L.Control.geocoder({
       defaultMarkGeocode: true,
-      geocoder: createSearchGeocoder(),
+      geocoder: createSearchGeocoder(map),
       placeholder: '住所・地名を検索',
     });
 
