@@ -38,9 +38,14 @@ function normalizeNumericCharacters(value: string) {
 function normalizeGsiQuery(value: string) {
   const normalized = normalizeNumericCharacters(value.trim());
 
-  return normalized
-    .replace(/〒/g, '')
+  const withoutPostalCode = normalized
+    .replace(/〒\s*/g, '')
+    .replace(/\b[0-9]{3}-?[0-9]{4}\b/g, '')
+    .replace(/\b[0-9]{3}[0-9]{4}\b/g, '')
     .replace(/\s+/g, ' ')
+    .trim();
+
+  return withoutPostalCode
     .replace(/([都道府県])(?=\S)/g, '$1')
     .replace(/([都道府県])(\S)/g, '$1$2')
     .replace(/([0-9]+)丁目/g, '$1丁目')
@@ -48,7 +53,6 @@ function normalizeGsiQuery(value: string) {
     .replace(/([0-9]+)号/g, '$1号')
     .replace(/−/g, '-')
     .replace(/－/g, '-')
-    .replace(/−/g, '-')
     .replace(/([0-9]+)-([0-9]+)/g, '$1-$2')
     .replace(/([0-9]+)ー([0-9]+)/g, '$1-$2')
     .replace(/([0-9]+)−([0-9]+)/g, '$1-$2')
