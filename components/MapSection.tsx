@@ -31,12 +31,73 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
   return null;
 }
 
+function createSearchGeocoder() {
+  const fallbackGeocoder = (L.Control as any).Geocoder?.nominatim?.();
+
+  return {
+    geocode(query: string, cb: (results: any[], status: string) => void) {
+      const term = typeof query === 'string' ? query.trim() : '';
+      if (!term) {
+        cb([], 'NOT_FOUND');
+        return;
+      }
+
+      fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(term)}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`GSI API error: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const results = data.map((item: any) => ({
+              name: item.properties?.title ?? item.properties?.address ?? term,
+              html: item.properties?.title ?? item.properties?.address ?? term,
+              center: L.latLng(item.geometry.coordinates[1], item.geometry.coordinates[0]),
+              bbox: Array.isArray(item.bbox) && item.bbox.length === 4
+                ? L.latLngBounds(
+                    L.latLng(item.bbox[1], item.bbox[0]),
+                    L.latLng(item.bbox[3], item.bbox[2]),
+                  )
+                : undefined,
+            }));
+            cb(results, 'OK');
+            return;
+          }
+
+          if (fallbackGeocoder?.geocode) {
+            fallbackGeocoder.geocode(query, cb);
+          } else {
+            cb([], 'NOT_FOUND');
+          }
+        })
+        .catch(() => {
+          if (fallbackGeocoder?.geocode) {
+            fallbackGeocoder.geocode(query, cb);
+          } else {
+            cb([], 'NOT_FOUND');
+          }
+        });
+    },
+    reverse(location: L.LatLng, scale: number, cb: (results: any[], status: string) => void) {
+      if (fallbackGeocoder?.reverse) {
+        fallbackGeocoder.reverse(location, scale, cb);
+      } else {
+        cb([], 'NOT_FOUND');
+      }
+    },
+  };
+}
+
 function GeocoderControl() {
   const map = useMap();
 
   useEffect(() => {
     const control = L.Control.geocoder({
       defaultMarkGeocode: true,
+      geocoder: createSearchGeocoder(),
+      placeholder: '住所・地名を検索',
     });
 
     control.addTo(map);
