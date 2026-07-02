@@ -31,12 +31,16 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
   return null;
 }
 
+function normalizeNumericCharacters(value: string) {
+  return value.replace(/[０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xfee0));
+}
+
 function createSearchGeocoder() {
   const fallbackGeocoder = (L.Control as any).Geocoder?.nominatim?.();
 
   return {
     geocode(query: string, cb: (results: any[], status: string) => void) {
-      const term = typeof query === 'string' ? query.trim() : '';
+      const term = typeof query === 'string' ? normalizeNumericCharacters(query.trim()) : '';
       if (!term) {
         cb([], 'NOT_FOUND');
         return;
