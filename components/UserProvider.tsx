@@ -2,7 +2,7 @@
 
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import { createId, loadFromStorage, saveToStorage } from '../lib/storage';
-import { isSupabaseEnabled, supabase } from '../lib/supabaseClient';
+import { getOAuthRedirectUrl, isSupabaseEnabled, supabase } from '../lib/supabaseClient';
 import { initRealtimeSubscriptions } from '../lib/store';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { UserProfile } from '../lib/types';
@@ -91,15 +91,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (supabase) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL
-        ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
-        : typeof window !== 'undefined'
-        ? window.location.origin
-        : undefined;
-      const redirectTo = appUrl ? `${appUrl}/overview` : undefined;
+      const redirectTo = getOAuthRedirectUrl('/overview');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo },
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'online',
+            prompt: 'select_account',
+          },
+        },
       });
       if (error) {
         console.error('Google OAuth sign-in failed:', error.message);
