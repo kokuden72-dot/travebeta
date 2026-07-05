@@ -238,7 +238,7 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
             <Marker
               position={[idea.latitude + 0.0012, idea.longitude]}
               icon={L.divIcon({
-                html: `<div style="font-size:12px;font-weight:700;color:#0f172a;background:rgba(255,255,255,0.92);padding:2px 6px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,0.16);white-space:nowrap;">${idea.posName}</div>`,
+                html: `<div style="display:inline-block;font-size:12px;font-weight:700;color:#0f172a;background:rgba(255,255,255,0.92);padding:2px 8px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,0.16);white-space:nowrap;line-height:1.2;">${idea.posName}</div>`,
                 className: '',
                 iconSize: [0, 0],
                 iconAnchor: [0, 0],
