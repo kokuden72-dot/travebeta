@@ -224,16 +224,27 @@ export default function MapSection({ ideas, onMapClick }: MapSectionProps) {
         <GeocoderControl />
         <ClickHandler onMapClick={onMapClick} />
         {ideas.map((idea) => (
-          <Marker key={idea.id} position={[idea.latitude, idea.longitude]} icon={markerIcon}>
-            <Popup>
-              <strong>{idea.posName}</strong>
-              <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
-              <div>{idea.latitude},{idea.longitude}</div>
-              <button onClick={() => navigator.clipboard.writeText(`https://www.google.com/maps?q=${idea.latitude},${idea.longitude}`)}>
-                コピーする
-              </button>
-            </Popup>
-          </Marker>
+          <div key={idea.id}>
+            <Marker position={[idea.latitude, idea.longitude]} icon={markerIcon}>
+              <Popup>
+                <strong>{idea.posName}</strong>
+                <div>{idea.mainTxt.slice(0, 80)}{idea.mainTxt.length > 80 ? '...' : ''}</div>
+                <div>{idea.latitude},{idea.longitude}</div>
+                <button onClick={() => navigator.clipboard.writeText(`https://www.google.com/maps?q=${idea.latitude},${idea.longitude}`)}>
+                  コピーする
+                </button>
+              </Popup>
+            </Marker>
+            <Marker
+              position={[idea.latitude + 0.0012, idea.longitude]}
+              icon={L.divIcon({
+                html: `<div style="font-size:12px;font-weight:700;color:#0f172a;background:rgba(255,255,255,0.92);padding:2px 6px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,0.16);white-space:nowrap;">${idea.posName}</div>`,
+                className: '',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0],
+              })}
+            />
+          </div>
         ))}
       </MapContainer>
     </div>
